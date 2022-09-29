@@ -5,10 +5,13 @@ import pathlib
 import random as random
 import time
 
-from icecream import ic
 
-
-def __calc_integral(exp_nmb, fc, a, b):
+def _calc_integral(exp_nmb, fc, a, b):
+    """Вычисление определенного интеграла с функцией\n
+        def myfunc(x):
+            f = x ** 3 + 1
+                return f
+    """
     x_max = b
     x_min = a
     y_max = fc(b)
@@ -24,38 +27,36 @@ def __calc_integral(exp_nmb, fc, a, b):
     return m * (b - a) * fc(b) / exp_nmb
 
 
-def calc_integral(seria_num, exp_nmb_power, fc, a, b):
-    st = time.perf_counter()
-    experiment = {"exp_integral": __calc_integral(10 ** exp_nmb_power, fc, a, b)}
-    end = time.perf_counter()
-    log = f"calc_integral: exp_nmb_power: seria_num: {seria_num}: 10^{exp_nmb_power}: elapsed time: {end - st:0.5f}"
-    ic(log)
-    return experiment
+def calc_integral(exp_nmb_power, fc, a, b):
+    return {"exp_integral": _calc_integral(10 ** exp_nmb_power, fc, a, b)}
 
-
-def calc_inaccuracy(_series: list[dict[dict]]):
-    for _seria in _series:
-        for key in _seria.keys():
-            _seria[key]['inaccuracy'] = math.fabs(((_seria[key]['exp_integral'] - 6) / 6))
-    return _series
-
-
-def calc_inaccuracy_for_average_series(_series: list[dict]):
-    for _seria in _series:
-        intg_list = list([_seria[k]['exp_integral'] for k in _seria.keys()])
-        avg_series = sum(intg_list) / len(intg_list)
-        _seria['average_inaccuracy'] = math.fabs((avg_series - 6) / 6)
-    return _series
-
-
-def calc_series(_series_num, _exp_nmb_power_start, _exp_nmb_power_end, fc, a, b):
+def create_series(_series_num, _exp_nmb_power_start, _exp_nmb_power_end, fc, a, b):
     _series = list()
     for seria in range(_series_num):
         _series.append(
             {
-                f"10 ** {power}": calc_integral(seria, power, fc, a, b)
+                f"10 ** {power}": calc_integral(power, fc, a, b)
                 for power in range(_exp_nmb_power_start, _exp_nmb_power_end + 1)
             })
+    return _series
+
+
+def calc_inaccuracy(_series: list[dict[dict]]):
+    """Расчет погрешности вычислений для каждой серии экспериментов"""
+    for _seria in _series:
+        for key in _seria.keys():
+            formula = math.fabs(((_seria[key]['exp_integral'] - 6) / 6))
+            _seria[key]['inaccuracy'] = formula
+    return _series
+
+
+def calc_inaccuracy_for_average_series(_series: list[dict]):
+    """Расчет погрешности вычислений для усредненного значения для каждой серии экспериментов"""
+    for _seria in _series:
+        values = list([_seria[k]['exp_integral'] for k in _seria.keys()])
+        avg_series = sum(values) / len(values)
+        formula = math.fabs((avg_series - 6) / 6)
+        _seria['average_inaccuracy'] = formula
     return _series
 
 
@@ -82,12 +83,12 @@ def main(exp_file: str):
         }
         json.dump(_input, wf, indent=4)
 
-    series = calc_series(series_num, exp_nmb_power_start, exp_nmb_power_end, myfunc, _a, _b)
+    series = create_series(series_num, exp_nmb_power_start, exp_nmb_power_end, myfunc, _a, _b)
     calc_inaccuracy(series)
-    res = calc_inaccuracy_for_average_series(series)
+    series_with_inaccuracy_for_averaged_values = calc_inaccuracy_for_average_series(series)
 
     with open(f"{exp_file}/output.json", "w") as wf_1:
-        json.dump(res, wf_1, indent=4)
+        json.dump(series_with_inaccuracy_for_averaged_values, wf_1, indent=4)
 
 
 def init():

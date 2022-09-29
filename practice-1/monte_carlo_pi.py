@@ -5,10 +5,9 @@ import pathlib
 import random
 import time
 
-from icecream import ic
-
 
 def calc_pi(exp_nmb, _x0, _y0, _r0):
+    """Вычисление значения числа pi"""
     x_min = _x0 - _r0
     x_max = _x0 + _r0
     y_min = _y0 - _r0
@@ -24,11 +23,23 @@ def calc_pi(exp_nmb, _x0, _y0, _r0):
     return 4 * m / exp_nmb
 
 
-def calc_pi_for_circle(seria_num, exp_nmb_power, _x0, _y0, _r0):
+def calc_pi_for_circle(exp_nmb_power, _x0, _y0, _r0):
     return {"exp_pi": calc_pi(10 ** exp_nmb_power, _x0, _y0, _r0)}
 
 
+def create_series(_series_num, _exp_nmb_power_start, _exp_nmb_power_end, _x0, _y0, _r0):
+    _series = []
+    for seria in range(_series_num):
+        _series.append(
+            {
+                f"10 ** {power}": calc_pi_for_circle(power, _x0, _y0, _r0)
+                for power in range(_exp_nmb_power_start, _exp_nmb_power_end + 1)
+            })
+    return _series
+
+
 def calc_inaccuracy(_series: list[dict[dict]]):
+    """Расчет погрешности вычислений pi для каждой серии экспериментов"""
     for _seria in _series:
         for key in _seria.keys():
             formula = math.fabs((_seria[key]['exp_pi'] - math.pi) / math.pi)
@@ -37,22 +48,12 @@ def calc_inaccuracy(_series: list[dict[dict]]):
 
 
 def calc_inaccuracy_for_average_values(_series: list[dict]):
+    """Расчет погрешности вычислений для усредненного значения для каждой серии экспериментов"""
     for _seria in _series:
         sum_seria = sum(list([_seria[k]['exp_pi'] for k in _seria.keys()]))
         avg_values = sum_seria / len(_series)
         formula = math.fabs((avg_values - math.pi) / math.pi)
         _seria['average_inaccuracy'] = formula
-    return _series
-
-
-def calc_series(_series_num, _exp_nmb_power_start, _exp_nmb_power_end, _x0, _y0, _r0):
-    _series = []
-    for seria in range(_series_num):
-        _series.append(
-            {
-                f"10 ** {power}": calc_pi_for_circle(seria, power, _x0, _y0, _r0)
-                for power in range(_exp_nmb_power_start, _exp_nmb_power_end + 1)
-            })
     return _series
 
 
@@ -84,7 +85,7 @@ def main(exp_file: str):
         json.dump(_input, wf_1, indent=4)
     with open(f"{exp_file}/input.json", "w") as wf_2:
         json.dump(_input, wf_2, indent=4)
-    series = calc_series(series_num, exp_nmb_power_start, exp_nmb_power_end, x0, y0, r0)
+    series = create_series(series_num, exp_nmb_power_start, exp_nmb_power_end, x0, y0, r0)
     calc_inaccuracy(series)
     series_with_inaccuracy_for_averaged_values = calc_inaccuracy_for_average_values(series)
     with open(f"{exp_file}/output.json", "w") as wf_3:
