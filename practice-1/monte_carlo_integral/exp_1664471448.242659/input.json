@@ -1,0 +1,8 @@
+{
+    "series_num": 1,
+    "exp_nmb_power_start": 4,
+    "exp_nmb_power_end": 7,
+    "func": " x ** 3 + 1",
+    "a": 0,
+    "b": 2
+}
